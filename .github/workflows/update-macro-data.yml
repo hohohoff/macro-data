@@ -26,7 +26,7 @@ jobs:
       
       - name: 安装依赖
         run: |
-          pip install requests pandas
+          pip install requests pandas yfinance pyfedwatch
       
       - name: 运行数据采集脚本
         run: python fetch_macro_data.py
