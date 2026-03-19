@@ -28,16 +28,16 @@ def get_oil_price():
 
 # ==================== 期限溢价获取（修复版） ====================
 def get_term_premium():
-    """获取10年期美债期限溢价（终极鲁棒版）"""
+    """获取10年期美债期限溢价（终极修复版）"""
     try:
         url = "https://www.newyorkfed.org/medialibrary/interactives/acm/acm.csv"
         print(f"正在获取期限溢价...")
         
-        # 方法1：直接下载文本手动解析
+        # 直接下载文本手动解析
         response = requests.get(url)
         lines = response.text.split('\n')
         
-        # 找到数据开始的行（跳过前13行说明）
+        # 找到数据开始的行
         for i in range(len(lines)):
             if lines[i].startswith('Date,Term Premium'):
                 data_start = i + 1
@@ -53,8 +53,9 @@ def get_term_premium():
                 if len(parts) >= 2:
                     try:
                         date = parts[0].strip()
-                        value = float(parts[1].strip())
-                        print(f"最新日期: {date}, 期限溢价: {value}%")
+                        # 关键修复：除以100转换成小数
+                        value = float(parts[1].strip()) / 100
+                        print(f"最新日期: {date}, 期限溢价: {value:.3f}%")
                         return value
                     except:
                         continue
