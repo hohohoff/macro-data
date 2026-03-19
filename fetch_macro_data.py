@@ -33,23 +33,36 @@ def get_oil_price():
         return 85.0  # 出错时返回默认值
 
 def get_term_premium():
-    """获取10年期美债期限溢价（来自NY Fed）"""
+    """获取10年期美债期限溢价（来自NY Fed）- 修复版本"""
     try:
         # NY Fed的ACM模型数据
         url = "https://www.newyorkfed.org/medialibrary/interactives/acm/acm.csv"
         print(f"正在获取期限溢价: {url}")
         
-        df = pd.read_csv(url)
+        # 关键修复：指定跳过前几行，并正确处理列
+        df = pd.read_csv(url, skiprows=13, header=None, names=['date', 'term_premium'])
         print(f"获取到数据，共{len(df)}行")
         
-        latest = df.iloc[-1]  # 取最新一行
-        # 最后一列是期限溢价，列名通常是 'Term Premium'
-        term_premium = float(latest.iloc[-1])
-        print(f"最新期限溢价: {term_premium}%")
+        # 转换日期列，并按日期排序
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.sort_values('date')
+        
+        # 取最新一行的期限溢价
+        latest = df.iloc[-1]
+        term_premium = float(latest['term_premium'])
+        print(f"最新日期: {latest['date'].strftime('%Y-%m-%d')}, 期限溢价: {term_premium}%")
         return term_premium
     except Exception as e:
         print(f"获取期限溢价出错: {e}")
-        return 0.75  # 出错时返回默认值
+        # 备用方案：如果解析失败，尝试另一种读取方式
+        try:
+            df = pd.read_csv(url, skiprows=13)
+            latest = df.iloc[-1]
+            term_premium = float(latest.iloc[-1])
+            print(f"备用方法成功，期限溢价: {term_premium}%")
+            return term_premium
+        except:
+            return 0.75  # 出错时返回默认值
 
 def get_rate_hike_expect():
     """获取加息预期 - 手动模式"""
